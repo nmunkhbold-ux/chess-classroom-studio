@@ -331,6 +331,21 @@ body.focus-mode #v8-focus-brands .focus-brand img{display:block;width:auto;heigh
 @media(max-width:850px){.brand-logo-card.club{width:44px;height:44px;padding:3px}.brand-logo-card.club img{width:36px;height:36px}.topbar-right .brand-logo-card.aum img{height:38px;max-width:35px}}
 @media(max-width:530px){.brand-logo-card.club{width:40px;height:40px;padding:2px}.brand-logo-card.club img{width:34px;height:34px}.topbar-right .brand-logo-card.aum img{height:33px;max-width:30px}}
 </style>
+<style id="calm-sidebar-ui">
+.tidy-disclosure{padding:0!important;overflow:hidden}
+.tidy-disclosure>summary{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:52px;padding:13px 17px;margin:0;cursor:pointer;list-style:none;color:#e9eee8}
+.tidy-disclosure>summary::-webkit-details-marker,.tidy-subpanel>summary::-webkit-details-marker{display:none}
+.tidy-disclosure>summary h2{margin:0;font-size:13px;letter-spacing:.1px;font-weight:750}
+.tidy-disclosure>summary:after,.tidy-subpanel>summary:after{content:"+";font-size:19px;line-height:1;color:#d3b37d;font-weight:500}
+.tidy-disclosure[open]>summary:after,.tidy-subpanel[open]>summary:after{content:"−"}
+.tidy-content{display:grid;gap:10px;padding:0 14px 14px}
+.tidy-subpanel{margin:0;padding:0;background:#16222c;border:1px solid #35495a;border-radius:9px;overflow:hidden}
+.tidy-subpanel>summary{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:44px;padding:10px 12px;cursor:pointer;list-style:none;color:#d7e0e4;font-size:12px;font-weight:700}
+.tidy-subpanel[open]{padding:0 12px 12px}
+.tidy-subpanel[open]>summary{padding:11px 0;margin-bottom:4px;border-bottom:1px solid #35495a}
+.tidy-subpanel>.v7-rows:first-child{margin-top:7px}
+@media(max-width:850px){.tidy-disclosure>summary{min-height:48px;padding:12px 14px}.tidy-content{padding:0 10px 10px;gap:8px}}
+</style>
 </head>
 <body data-theme="classic">
   <div id="app">
@@ -2065,7 +2080,41 @@ Object.assign(mn,{
   'Board editor':'Самбар засварлах','Place, move or remove any piece':'Дүрс байрлуулах, нүүлгэх, арилгах',
   'No chapters on this line':'Энэ хэсэгт бусад гарчиг алга',
 });
+function makeTidyDisclosure(panel,title,subpanel=false){
+  if(!panel||panel.tagName.toLowerCase()==='details')return panel;
+  const details=document.createElement('details');
+  details.className=panel.className+(subpanel?' tidy-subpanel':' tidy-disclosure');
+  if(panel.id)details.id=panel.id;
+  const summary=document.createElement('summary');
+  summary.className=subpanel?'tidy-subsummary':'card-heading tidy-summary';
+  if(subpanel){const label=document.createElement('span');label.textContent=title;summary.appendChild(label);}
+  else{const label=document.createElement('h2');label.textContent=title;summary.appendChild(label);}
+  details.appendChild(summary);
+  const content=subpanel?details:document.createElement('div');
+  if(!subpanel)content.className='tidy-content';
+  const heading=panel.querySelector(subpanel?':scope > h3':':scope > .card-heading');
+  for(const child of [...panel.children]){
+    if(child===heading)continue;
+    content.appendChild(child);
+  }
+  if(!subpanel)details.appendChild(content);
+  panel.replaceWith(details);
+  return details;
+}
+function simplifySidebar(){
+  makeTidyDisclosure(document.querySelector('.tools-card'),'Drawing tools');
+  makeTidyDisclosure(document.querySelector('.history-card'),'Move history');
+  makeTidyDisclosure(document.querySelector('.settings-card'),'Appearance');
+  const more=makeTidyDisclosure(document.querySelector('#v7-author-panel'),'More lesson tools');
+  if(more){
+    const labels=['Lesson notes','Lesson templates','Puzzle','Practice clock','Recording options'];
+    [...more.querySelectorAll(':scope > .tidy-content > .v7-panel')].forEach((panel,index)=>makeTidyDisclosure(panel,labels[index]||'More options',true));
+  }
+  document.body.classList.add('tidy-ui');
+}
+Object.assign(mn,{'More lesson tools':'Нэмэлт хичээлийн хэрэгсэл','Lesson notes':'Хичээлийн тайлбар','Lesson templates':'Хичээлийн загварууд','Puzzle':'Таавар','Practice clock':'Дасгалын цаг','Recording options':'Бичлэгийн тохиргоо'});
 function init(){
+  simplifySidebar();
   rememberTranslations();
   restore();if(!lessonHistory.length)resetLessonHistory();if(!editorTimeline.length)initEditorTimeline();
   if(!treeReady)initTreeFromStates();
