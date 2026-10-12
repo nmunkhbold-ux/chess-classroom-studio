@@ -29,6 +29,7 @@ jobs:
           mkdir -p site
           unzip -o Chess_Classroom_Studio_V8_Complete_Package.zip -d site
           cp Chess_Classroom_Studio_Merged.html site/index.html
+          touch site/.nojekyll
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
